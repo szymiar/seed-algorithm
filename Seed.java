@@ -87,12 +87,23 @@ public class Seed {
 
 
 	public static BigInteger F(int Ki, BigInteger R){
-		int R0 = Integer.parseInt(Integer.toBinaryString(Integer.parseInt(R.toString())).substring(0,15));    //Tworzymy 32 bitowe bloki
-		int R1 = Integer.parseInt(Integer.toBinaryString(Integer.parseInt(R.toString())).substring(16));
-		int Ki0 = Integer.parseInt(Integer.toBinaryString(Ki).substring(0,15));
-		int Ki1 = Integer.parseInt(Integer.toBinaryString(Ki).substring(16));
-		int temp1 = R0^Ki0;
-		int temp2 = R1^Ki1;
+		BigInteger R0 = new BigInteger(R.toString().substring(0,15),16);
+		BigInteger R1 = new BigInteger(R.toString().substring(16),16);
+
+		//int R0 = Integer.parseInt(Integer.toBinaryString(Integer.parseInt(R.toString())).substring(0,15));    //Tworzymy 32 bitowe bloki
+		//int R1 = Integer.parseInt(Integer.toBinaryString(Integer.parseInt(R.toString())).substring(16));
+		BigInteger Ki0 = new BigInteger(Integer.toBinaryString(Ki).substring(0,15));
+		BigInteger Ki1 = new BigInteger(Integer.toBinaryString(Ki).substring(16));
+
+		//int Ki0 = Integer.parseInt(Integer.toBinaryString(Ki).substring(0,15));
+		//int Ki1 = Integer.parseInt(Integer.toBinaryString(Ki).substring(16));
+		BigInteger temp1 = R0.xor(Ki0);
+		BigInteger temp2 = R1.xor(Ki1);
+
+		//int temp1 = R0^Ki0;
+		//int temp2 = R1^Ki1;
+
+		BigInteger R0_res = ()
 
 		int R0_res = (G((G(G(((temp1)^(temp2))+(temp1))%mod_2)+G((temp1)^(temp2)))%mod_2) +
 				G((G(temp1^temp2)+(temp1)) % mod_2))%mod_2;                                       	//To jest R0'
@@ -104,8 +115,9 @@ public class Seed {
 	}
 
 
-	public static int G(int x){
-		return 0x00000000;
+	public static BigInteger G(int x){
+		BigInteger temp = new BigInteger("00000000",16);
+		return temp;
 	}
 
     public static void main(String[] args) {
