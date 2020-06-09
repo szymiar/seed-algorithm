@@ -7,7 +7,7 @@ public class Main
         byte[] mac = new byte[160];
 
 
-        KISA_SEED seed = new KISA_SEED();
+        SEED seed = new SEED();
 
         int[] pOut = new int[4];
         int[] pIn = new int[4];

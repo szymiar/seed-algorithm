@@ -1,6 +1,14 @@
-public class KISA_SEED {
+
+
+public class SEED{
+    /**
+     * Tablica int[] stalych do generowania podkluczy.
+     */
     private final int[] KC = {0x9e3779b9, 0x3c6ef373, 0x78dde6e6, 0xf1bbcdcc, 0xe3779b99, 0xc6ef3733, 0x8dde6e67, 0x1bbcdccf, 0x3779b99e, 0x6ef3733c, 0xdde6e678, 0xbbcdccf1, 0x779b99e3, 0xef3733c6, 0xde6e678d, 0xbcdccf1b};
 
+    /**
+     * Poszerzony S-box numer 0
+     */
     private final int SS0[] = {
             0x2989a1a8, 0x05858184, 0x16c6d2d4, 0x13c3d3d0, 0x14445054, 0x1d0d111c, 0x2c8ca0ac, 0x25052124,
             0x1d4d515c, 0x03434340, 0x18081018, 0x1e0e121c, 0x11415150, 0x3cccf0fc, 0x0acac2c8, 0x23436360,
@@ -36,6 +44,9 @@ public class KISA_SEED {
             0x28c8e0e8, 0x1b0b1318, 0x05050104, 0x39497178, 0x10809090, 0x2a4a6268, 0x2a0a2228, 0x1a8a9298
     };
 
+    /**
+     * Poszerzony S-box numer 1
+     */
     private final int SS1[] = {
             0x38380830, 0xe828c8e0, 0x2c2d0d21, 0xa42686a2, 0xcc0fcfc3, 0xdc1eced2, 0xb03383b3, 0xb83888b0,
             0xac2f8fa3, 0x60204060, 0x54154551, 0xc407c7c3, 0x44044440, 0x6c2f4f63, 0x682b4b63, 0x581b4b53,
@@ -71,6 +82,9 @@ public class KISA_SEED {
             0xd819c9d1, 0x4c0c4c40, 0x80038383, 0x8c0f8f83, 0xcc0ecec2, 0x383b0b33, 0x480a4a42, 0xb43787b3
     };
 
+    /**
+     * Poszerzony S-box numer 2
+     */
     private final int SS2[] = {
             0xa1a82989, 0x81840585, 0xd2d416c6, 0xd3d013c3, 0x50541444, 0x111c1d0d, 0xa0ac2c8c, 0x21242505,
             0x515c1d4d, 0x43400343, 0x10181808, 0x121c1e0e, 0x51501141, 0xf0fc3ccc, 0xc2c80aca, 0x63602343,
@@ -106,6 +120,9 @@ public class KISA_SEED {
             0xe0e828c8, 0x13181b0b, 0x01040505, 0x71783949, 0x90901080, 0x62682a4a, 0x22282a0a, 0x92981a8a
     };
 
+    /**
+     * Poszerzony S-box numer 3
+     */
     private final int SS3[] = {
             0x08303838, 0xc8e0e828, 0x0d212c2d, 0x86a2a426, 0xcfc3cc0f, 0xced2dc1e, 0x83b3b033, 0x88b0b838,
             0x8fa3ac2f, 0x40606020, 0x45515415, 0xc7c3c407, 0x44404404, 0x4f636c2f, 0x4b63682b, 0x4b53581b,
@@ -141,27 +158,58 @@ public class KISA_SEED {
             0xc9d1d819, 0x4c404c0c, 0x83838003, 0x8f838c0f, 0xcec2cc0e, 0x0b33383b, 0x4a42480a, 0x87b3b437
     };
 
+    /**
+     * Tablica typu int[] przechowująca wygenerowane podklucze.
+     */
     private int[] rKeys = new int[32];
 
+    /**
+     * Metoda pobierająca najmłodszy bajt podanej liczby.
+     * @param num int, liczba
+     * @return byte
+     */
     private byte get0Byte(int num) {
         return (byte) (num & 0x0FF);
     }
 
+    /**
+     * Metoda pobierająca 2 najmłodszy bajt podanej liczby.
+     * @param num int, liczba
+     * @return byte
+     */
     private byte get1Byte(int num) {
         return (byte) ((num >> 8) & 0x0FF);
     }
 
+    /**
+     * Metoda pobierająca 3 najmłodszy bajt podanej liczby.
+     * @param num int, liczba
+     * @return byte
+     */
     private byte get2Byte(int num) {
         return (byte) ((num >> 16) & 0x0FF);
     }
 
+
+    /**
+     * Metoda pobierająca 4 najmłodszy bajt podanej liczby.
+     * @param num int, liczba
+     * @return byte
+     */
     private byte get3Byte(int num) {
         return (byte) ((num >> 24) & 0x0FF);
     }
 
-    private void round(int[] temp, int block[], int l0, int l1, int r0, int r1, int offset) {
-        temp[0] = block[r0] ^ rKeys[offset+0];
-        temp[1] = block[r1] ^ rKeys[offset+1];
+    /**
+     * Metoda wykonująca funkcję F.
+     * @param temp int[], pomocnicza tablica
+     * @param blocks int[], szyfrowane bloki
+     * @param params int[], tablica określająca kolejność wykorzystania bloków
+     * @param offset int, przesunięcie
+     */
+    private void round(int[] temp, int[] blocks, int[] params, int offset) {
+        temp[0] = blocks[params[2]] ^ rKeys[offset+0];
+        temp[1] = blocks[params[3]] ^ rKeys[offset+1];
 
         temp[1] ^= temp[0];
         temp[1] = SS0[get0Byte(temp[1])&0x0ff] ^ SS1[get1Byte(temp[1])&0x0ff] ^
@@ -174,77 +222,81 @@ public class KISA_SEED {
                 SS2[get2Byte(temp[1])&0x0ff] ^ SS3[get3Byte(temp[1])&0x0ff];
         temp[0] += temp[1];
 
-        block[l0] ^= temp[0];
-        block[l1] ^= temp[1];
+        blocks[params[0]] ^= temp[0];
+        blocks[params[1]] ^= temp[1];
     }
 
+    /**
+     * Metoda generująca wartość int na podstawie bajta
+     * @param b byte
+     * @param offset int, przesunięcie
+     * @return int
+     */
     private int byteToInt(byte[] b, int offset) {
         return ((b[offset] & 0x0FF) << 24) | ((b[offset + 1] & 0x0FF) << 16)
                 | ((b[offset + 2] & 0x0FF) << 8) | ((b[offset + 3] & 0x0FF));
     }
 
-    private void generateSubkeys(int temp[], int[] keys, int keysOffset, int block[], int num) {
-        temp[0] = block[0] + block[2] - KC[num];
-        temp[1] = block[1] - block[3] + KC[num];
+    /**
+     * Metoda generująca parę podkluczy
+     * @param temp int[], tablica pomocnicza
+     * @param keysOffset int, przesunięcie
+     * @param blocks int[], szyfrowane bloki
+     * @param num int, numer wykorzystywanej wykorzystywanej stałej w tablicy KC
+     */
+    private void generateSubkeys(int[] temp, int keysOffset, int[] blocks, int num) {
+        temp[0] = blocks[0] + blocks[2] - KC[num];
+        temp[1] = blocks[1] - blocks[3] + KC[num];
 
-        keys[keysOffset] = SS0[get0Byte(temp[0])&0x0ff] ^ SS1[get1Byte(temp[0])&0x0ff] ^ SS2[get2Byte(temp[0])&0x0ff] ^ SS3[get3Byte(temp[0])&0x0ff];
-        keys[keysOffset+1] = SS0[get0Byte(temp[1])&0x0ff] ^ SS1[get1Byte(temp[1])&0x0ff] ^ SS2[get2Byte(temp[1])&0x0ff] ^ SS3[get3Byte(temp[1])&0x0ff];
+        rKeys[keysOffset] = SS0[get0Byte(temp[0])&0x0ff] ^ SS1[get1Byte(temp[0])&0x0ff] ^ SS2[get2Byte(temp[0])&0x0ff] ^ SS3[get3Byte(temp[0])&0x0ff];
+        rKeys[keysOffset+1] = SS0[get0Byte(temp[1])&0x0ff] ^ SS1[get1Byte(temp[1])&0x0ff] ^ SS2[get2Byte(temp[1])&0x0ff] ^ SS3[get3Byte(temp[1])&0x0ff];
 
         if(keysOffset < 15) {
             if (keysOffset % 2 == 0) {
-                temp[0] = block[0];
-                block[0] = ((block[0] >> 8) & 0x00ffffff) ^ (block[1] << 24);
-                block[1] = ((block[1] >> 8) & 0x00ffffff) ^ (temp[0] << 24);
+                temp[0] = blocks[0];
+                blocks[0] = ((blocks[0] >> 8) & 0x00ffffff) ^ (blocks[1] << 24);
+                blocks[1] = ((blocks[1] >> 8) & 0x00ffffff) ^ (temp[0] << 24);
             } else {
-                temp[0] = block[2];
-                block[2] = (block[2] << 8) ^ ((block[3] >> 24) & 0x000000ff);
-                block[3] = (block[3] << 8) ^ ((temp[0] >> 24) & 0x000000ff);
+                temp[0] = blocks[2];
+                blocks[2] = (blocks[2] << 8) ^ ((blocks[3] >> 24) & 0x000000ff);
+                blocks[3] = (blocks[3] << 8) ^ ((temp[0] >> 24) & 0x000000ff);
             }
         }
     }
 
+    /**
+     * Metoda inicjalizujaca.
+     * Powinna byc wywolywana przy kazdorazowej zmianie klucza glownego.
+     * Metoda generuje tablice podkluczy rKeys, uzywanych w trakcie szyfrowania i deszyfrowania.
+     * @param mKey klucz glowny typu byte[] składający się z 16 segmentów po 8 bajtow
+     */
     public void init(byte[] mKey) {
-        int blocks[] = new int[4];
-        int temp[] = new int[2];
+        int[] blocks = new int[4];
+        int[] temp = new int[2];
 
         for(int i = 0; i < 4; i++) {
             blocks[i] = byteToInt(mKey, 4 * i);
         }
 
         for(int i = 0; i < 16; i++) {
-            generateSubkeys(temp, rKeys, i * 2, blocks, i);
+            generateSubkeys(temp, i * 2, blocks, i);
         }
     }
-
-
 
 
     public int[] encrypt(int[] data) {
         int[] block = new int[4];
         int[] temp = new int[2];
+        int[] params;
         int[] cipher = new int[4];
 
-        block[0] = data[0];
-        block[1] = data[1];
-        block[2] = data[2];
-        block[3] = data[3];
+        for(int i = 0; i < 4; i++) block[i] = data[i];
 
-        round(temp, block, 0, 1, 2, 3,  0);
-        round(temp, block, 2, 3, 0, 1,  2);
-        round(temp, block, 0, 1, 2, 3,  4);
-        round(temp, block, 2, 3, 0, 1,  6);
-        round(temp, block, 0, 1, 2, 3,  8);
-        round(temp, block, 2, 3, 0, 1, 10);
-        round(temp, block, 0, 1, 2, 3, 12);
-        round(temp, block, 2, 3, 0, 1, 14);
-        round(temp, block, 0, 1, 2, 3, 16);
-        round(temp, block, 2, 3, 0, 1, 18);
-        round(temp, block, 0, 1, 2, 3, 20);
-        round(temp, block, 2, 3, 0, 1, 22);
-        round(temp, block, 0, 1, 2, 3, 24);
-        round(temp, block, 2, 3, 0, 1, 26);
-        round(temp, block, 0, 1, 2, 3, 28);
-        round(temp, block, 2, 3, 0, 1, 30);
+        for(int i = 0; i < 16; i++) {
+            if(i % 2 == 0) params = new int[]{0, 1, 2, 3};
+            else params = new int[]{2, 3, 0, 1};
+            round(temp, block, params, i * 2);
+        }
 
         cipher[0] = block[2];
         cipher[1] = block[3];
@@ -254,32 +306,19 @@ public class KISA_SEED {
         return cipher;
     }
 
-    public int[] decrypt(int[] pIn) {
+    public int[] decrypt(int[] cipher) {
         int[] block = new int[4];
         int[] temp = new int[2];
+        int[] params;
         int[] data = new int[4];
 
-        block[0] = pIn[0];
-        block[1] = pIn[1];
-        block[2] = pIn[2];
-        block[3] = pIn[3];
+        for(int i = 0; i < 4; i++) block[i] = cipher[i];
 
-        round(temp, block, 0, 1, 2, 3, 30);
-        round(temp, block, 2, 3, 0, 1, 28);
-        round(temp, block, 0, 1, 2, 3, 26);
-        round(temp, block, 2, 3, 0, 1, 24);
-        round(temp, block, 0, 1, 2, 3, 22);
-        round(temp, block, 2, 3, 0, 1, 20);
-        round(temp, block, 0, 1, 2, 3, 18);
-        round(temp, block, 2, 3, 0, 1, 16);
-        round(temp, block, 0, 1, 2, 3, 14);
-        round(temp, block, 2, 3, 0, 1, 12);
-        round(temp, block, 0, 1, 2, 3, 10);
-        round(temp, block, 2, 3, 0, 1,  8);
-        round(temp, block, 0, 1, 2, 3,  6);
-        round(temp, block, 2, 3, 0, 1,  4);
-        round(temp, block, 0, 1, 2, 3,  2);
-        round(temp, block, 2, 3, 0, 1,  0);
+        for(int i = 15; i >= 0; i--) {
+            if(i % 2 == 1) params = new int[]{0, 1, 2, 3};
+            else params = new int[]{2, 3, 0, 1};
+            round(temp, block, params, i * 2);
+        }
 
         data[0] = block[2];
         data[1] = block[3];
