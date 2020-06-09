@@ -1,3 +1,5 @@
+import java.nio.ByteBuffer;
+
 public class Main
 {
     public static void main(String[] args)
@@ -19,6 +21,13 @@ public class Main
         PlainText[3] = 0x0c0d0e0f;
 
 
+        int[]PlainText2 = new int[4];
+        PlainText2[0] = 0x83a2f8a2;
+        PlainText2[1] = 0x88641fb9;
+        PlainText2[2] = 0xa4e9a5cc;
+        PlainText2[3] = 0x2f131c7d;
+        String key2 = "4706480851e61be85d74bfb3fd956185";
+
 
         keyAsHex(key, "00000000000000000000000000000000");
         seed.init(key);
@@ -34,6 +43,23 @@ public class Main
             System.out.println(Integer.toString(CipherText[i],16) + " : " + Integer.toString(decoded[i],16));
         }
 
+        System.out.println("");
+        System.out.println("");
+        System.out.println("");
+        keyAsHex(key, key2);
+        seed.init(key);
+        CipherText = seed.encrypt(PlainText2);
+
+        for (int i = 0; i < 4; i++){
+            System.out.println(Long.toString(getUnsignedInt(PlainText2[i]),16) + " : " + Long.toString(getUnsignedInt(CipherText[i]),16));
+        }
+
+        int[] decoded2 = seed.decrypt(CipherText);
+
+        System.out.println("");
+        for (int i = 0; i < 4; i++){
+            System.out.println(Long.toString(getUnsignedInt(CipherText[i]),16) + " : " + Long.toString(getUnsignedInt(decoded2[i]),16));
+        }
 
 
     }
@@ -46,8 +72,19 @@ public class Main
 
     }*/
 
+    public static final int BITS_PER_BYTE = 8;
+    public static long getUnsignedInt(int x) {
+        ByteBuffer buf = ByteBuffer.allocate(Long.SIZE / BITS_PER_BYTE);
+        buf.putInt(Integer.SIZE / BITS_PER_BYTE, x);
+        return buf.getLong(0);
+    }
 
 
+    /**
+     * Pozwala otrzymać poprawnie utworzony klucz wartości hexadecymalnych
+     * @param res
+     * @param key
+     */
     private static void keyAsHex(byte[] res, String key)
     {
         byte temp;
