@@ -25,12 +25,9 @@ public class Main
         keyLen = asc2hex(key, "00000000000000000000000000000000");
 
 
-
-        int[] rKey = new int[32];
-
         System.out.println(pIn[0]);
-        seed.KeySchedule(key, rKey);
-        seed.Encrypt(pOut,pIn, rKey);
+        seed.init(key);
+        pOut = seed.encrypt(pIn);
 
 
         System.out.print(pOut[0]);
