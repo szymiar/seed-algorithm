@@ -14,9 +14,9 @@ public class Main2
         BigInteger[] CipherText = new BigInteger[4];
         BigInteger[] PlainText = new BigInteger[4];
 
+        int x =  0x00010203;
 
-
-        PlainText[0] = new BigInteger("00010203",16);
+        PlainText[0] = new BigInteger(Integer.toHexString(x),16);
         PlainText[1] = new BigInteger("04050607",16);
         PlainText[2] = new BigInteger("08090a0b",16);
         PlainText[3] = new BigInteger("0c0d0e0f",16);
