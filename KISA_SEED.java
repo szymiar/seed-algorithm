@@ -1,20 +1,5 @@
 public class KISA_SEED {
-    private final int KC0 = 0x9e3779b9;
-    private final int KC1 = 0x3c6ef373;
-    private final int KC2 = 0x78dde6e6;
-    private final int KC3 = 0xf1bbcdcc;
-    private final int KC4 = 0xe3779b99;
-    private final int KC5 = 0xc6ef3733;
-    private final int KC6 = 0x8dde6e67;
-    private final int KC7 = 0x1bbcdccf;
-    private final int KC8 = 0x3779b99e;
-    private final int KC9 = 0x6ef3733c;
-    private final int KC10 = 0xdde6e678;
-    private final int KC11 = 0xbbcdccf1;
-    private final int KC12 = 0x779b99e3;
-    private final int KC13 = 0xef3733c6;
-    private final int KC14 = 0xde6e678d;
-    private final int KC15 = 0xbcdccf1b;
+    private final int[] KC = {0x9e3779b9, 0x3c6ef373, 0x78dde6e6, 0xf1bbcdcc, 0xe3779b99, 0xc6ef3733, 0x8dde6e67, 0x1bbcdccf, 0x3779b99e, 0x6ef3733c, 0xdde6e678, 0xbbcdccf1, 0x779b99e3, 0xef3733c6, 0xde6e678d, 0xbcdccf1b};
 
     private final int SS0[] = {
             0x2989a1a8, 0x05858184, 0x16c6d2d4, 0x13c3d3d0, 0x14445054, 0x1d0d111c, 0x2c8ca0ac, 0x25052124,
@@ -174,29 +159,10 @@ public class KISA_SEED {
         return (byte) ((num >> 24) & 0x0FF);
     }
 
-    private void generateOddSubkeys(int temp[], int[] keys, int keysOffset, int block[], int KC) {
-        temp[0] = block[0] + block[2] - KC;
-        temp[1] = block[1] + KC - block[3];
-        keys[keysOffset] = SS0[get0Byte(temp[0])&0x0ff] ^ SS1[get1Byte(temp[0])&0x0ff] ^ SS2[get2Byte(temp[0])&0x0ff] ^ SS3[get3Byte(temp[0])&0x0ff];
-        keys[keysOffset+1] = SS0[get0Byte(temp[1])&0x0ff] ^ SS1[get1Byte(temp[1])&0x0ff] ^ SS2[get2Byte(temp[1])&0x0ff] ^ SS3[get3Byte(temp[1])&0x0ff];
-        temp[0] = block[0];
-        block[0] = ((block[0]>>8)&0x00ffffff) ^ (block[1]<<24);
-        block[1] = ((block[1]>>8)&0x00ffffff) ^ (temp[0]<<24);
-    }
+    private void round(int[] temp, int block[], int l0, int l1, int r0, int r1, int offset) {
+        temp[0] = block[r0] ^ rKeys[offset+0];
+        temp[1] = block[r1] ^ rKeys[offset+1];
 
-    private void generateEvenSubkeys(int temp[], int []keys, int keysOffset, int block[], int KC) {
-        temp[0] = block[0] + block[2] - KC;
-        temp[1] = block[1] + KC - block[3];
-        keys[keysOffset] = SS0[get0Byte(temp[0])&0x0ff] ^ SS1[get1Byte(temp[0])&0x0ff] ^ SS2[get2Byte(temp[0])&0x0ff] ^ SS3[get3Byte(temp[0])&0x0ff];
-        keys[keysOffset+1] = SS0[get0Byte(temp[1])&0x0ff] ^ SS1[get1Byte(temp[1])&0x0ff] ^ SS2[get2Byte(temp[1])&0x0ff] ^ SS3[get3Byte(temp[1])&0x0ff];
-        temp[0] = block[2];
-        block[2] = (block[2]<<8) ^ ((block[3]>>24)&0x000000ff);
-        block[3] = (block[3]<<8) ^ ((temp[0]>>24)&0x000000ff);
-    }
-
-    private void round(int[] temp, int block[], int l0, int l1, int r0, int r1, int[] keys, int offset) {
-        temp[0] = block[r0] ^ keys[offset+0];
-        temp[1] = block[r1] ^ keys[offset+1];
         temp[1] ^= temp[0];
         temp[1] = SS0[get0Byte(temp[1])&0x0ff] ^ SS1[get1Byte(temp[1])&0x0ff] ^
                 SS2[get2Byte(temp[1])&0x0ff] ^ SS3[get3Byte(temp[1])&0x0ff];
@@ -207,58 +173,55 @@ public class KISA_SEED {
         temp[1] = SS0[get0Byte(temp[1])&0x0ff] ^ SS1[get1Byte(temp[1])&0x0ff] ^
                 SS2[get2Byte(temp[1])&0x0ff] ^ SS3[get3Byte(temp[1])&0x0ff];
         temp[0] += temp[1];
+
         block[l0] ^= temp[0];
         block[l1] ^= temp[1];
     }
 
     private int byteToInt(byte[] b, int offset) {
-        return ((b[offset] & 0x0FF) << 24) | ((b[offset + 1] & 0x0FF) << 16) | ((b[offset + 2] & 0x0FF) << 8) | ((b[offset + 3] & 0x0FF));
+        return ((b[offset] & 0x0FF) << 24) | ((b[offset + 1] & 0x0FF) << 16)
+                | ((b[offset + 2] & 0x0FF) << 8) | ((b[offset + 3] & 0x0FF));
     }
 
+    private void generateSubkeys(int temp[], int[] keys, int keysOffset, int block[], int num) {
+        temp[0] = block[0] + block[2] - KC[num];
+        temp[1] = block[1] - block[3] + KC[num];
 
+        keys[keysOffset] = SS0[get0Byte(temp[0])&0x0ff] ^ SS1[get1Byte(temp[0])&0x0ff] ^ SS2[get2Byte(temp[0])&0x0ff] ^ SS3[get3Byte(temp[0])&0x0ff];
+        keys[keysOffset+1] = SS0[get0Byte(temp[1])&0x0ff] ^ SS1[get1Byte(temp[1])&0x0ff] ^ SS2[get2Byte(temp[1])&0x0ff] ^ SS3[get3Byte(temp[1])&0x0ff];
 
-
+        if(keysOffset < 15) {
+            if (keysOffset % 2 == 0) {
+                temp[0] = block[0];
+                block[0] = ((block[0] >> 8) & 0x00ffffff) ^ (block[1] << 24);
+                block[1] = ((block[1] >> 8) & 0x00ffffff) ^ (temp[0] << 24);
+            } else {
+                temp[0] = block[2];
+                block[2] = (block[2] << 8) ^ ((block[3] >> 24) & 0x000000ff);
+                block[3] = (block[3] << 8) ^ ((temp[0] >> 24) & 0x000000ff);
+            }
+        }
+    }
 
     public void init(byte[] mKey) {
-        int block[] = new int[4];
+        int blocks[] = new int[4];
         int temp[] = new int[2];
 
-        block[0] = byteToInt(mKey, 0);
-        block[1] = byteToInt(mKey, 4);
-        block[2] = byteToInt(mKey, 8);
-        block[3] = byteToInt(mKey,12);
+        for(int i = 0; i < 4; i++) {
+            blocks[i] = byteToInt(mKey, 4 * i);
+        }
 
-        generateOddSubkeys(temp, rKeys, 0, block, KC0 );
-        generateEvenSubkeys(temp, rKeys, 2, block, KC1 );
-        generateOddSubkeys(temp, rKeys, 4, block, KC2 );
-        generateEvenSubkeys(temp, rKeys, 6, block, KC3 );
-        generateOddSubkeys(temp, rKeys, 8, block, KC4 );
-        generateEvenSubkeys(temp, rKeys, 10, block, KC5 );
-        generateOddSubkeys(temp, rKeys, 12, block, KC6 );
-        generateEvenSubkeys(temp, rKeys, 14, block, KC7 );
-        generateOddSubkeys(temp, rKeys, 16, block, KC8 );
-        generateEvenSubkeys(temp, rKeys, 18, block, KC9 );
-        generateOddSubkeys(temp, rKeys, 20, block, KC10);
-        generateEvenSubkeys(temp, rKeys, 22, block, KC11);
-        generateOddSubkeys(temp, rKeys, 24, block, KC12);
-        generateEvenSubkeys(temp, rKeys, 26, block, KC13);
-        generateOddSubkeys(temp, rKeys, 28, block, KC14);
-
-        temp[0] = block[0] + block[2] - KC15;
-        temp[1] = block[1] - block[3] + KC15;
-
-        rKeys[30] = SS0[get0Byte(temp[0]) & 0x0FF] ^ SS1[get1Byte(temp[0]) & 0x0FF] ^
-                SS2[get2Byte(temp[0]) & 0x0FF] ^ SS3[get3Byte(temp[0]) & 0x0FF];
-        rKeys[31] = SS0[get0Byte(temp[1]) & 0x0FF] ^ SS1[get1Byte(temp[1]) & 0x0FF] ^
-                SS2[get2Byte(temp[1]) & 0x0FF] ^ SS3[get3Byte(temp[1]) & 0x0FF];
+        for(int i = 0; i < 16; i++) {
+            generateSubkeys(temp, rKeys, i * 2, blocks, i);
+        }
     }
 
 
 
 
     public int[] encrypt(int[] data) {
-        int block[] = new int[4];
-        int temp[] = new int[2];
+        int[] block = new int[4];
+        int[] temp = new int[2];
         int[] cipher = new int[4];
 
         block[0] = data[0];
@@ -266,22 +229,22 @@ public class KISA_SEED {
         block[2] = data[2];
         block[3] = data[3];
 
-        round(temp, block, 0, 1, 2, 3, rKeys,  0);
-        round(temp, block, 2, 3, 0, 1, rKeys,  2);
-        round(temp, block, 0, 1, 2, 3, rKeys,  4);
-        round(temp, block, 2, 3, 0, 1, rKeys,  6);
-        round(temp, block, 0, 1, 2, 3, rKeys,  8);
-        round(temp, block, 2, 3, 0, 1, rKeys, 10);
-        round(temp, block, 0, 1, 2, 3, rKeys, 12);
-        round(temp, block, 2, 3, 0, 1, rKeys, 14);
-        round(temp, block, 0, 1, 2, 3, rKeys, 16);
-        round(temp, block, 2, 3, 0, 1, rKeys, 18);
-        round(temp, block, 0, 1, 2, 3, rKeys, 20);
-        round(temp, block, 2, 3, 0, 1, rKeys, 22);
-        round(temp, block, 0, 1, 2, 3, rKeys, 24);
-        round(temp, block, 2, 3, 0, 1, rKeys, 26);
-        round(temp, block, 0, 1, 2, 3, rKeys, 28);
-        round(temp, block, 2, 3, 0, 1, rKeys, 30);
+        round(temp, block, 0, 1, 2, 3,  0);
+        round(temp, block, 2, 3, 0, 1,  2);
+        round(temp, block, 0, 1, 2, 3,  4);
+        round(temp, block, 2, 3, 0, 1,  6);
+        round(temp, block, 0, 1, 2, 3,  8);
+        round(temp, block, 2, 3, 0, 1, 10);
+        round(temp, block, 0, 1, 2, 3, 12);
+        round(temp, block, 2, 3, 0, 1, 14);
+        round(temp, block, 0, 1, 2, 3, 16);
+        round(temp, block, 2, 3, 0, 1, 18);
+        round(temp, block, 0, 1, 2, 3, 20);
+        round(temp, block, 2, 3, 0, 1, 22);
+        round(temp, block, 0, 1, 2, 3, 24);
+        round(temp, block, 2, 3, 0, 1, 26);
+        round(temp, block, 0, 1, 2, 3, 28);
+        round(temp, block, 2, 3, 0, 1, 30);
 
         cipher[0] = block[2];
         cipher[1] = block[3];
@@ -291,36 +254,38 @@ public class KISA_SEED {
         return cipher;
     }
 
-    public void Decrypt(int[] pOut, int[] pIn, int[] rKeys)
-    {
-        int block[] = new int[4];
-        int temp[] = new int[2];
+    public int[] decrypt(int[] pIn) {
+        int[] block = new int[4];
+        int[] temp = new int[2];
+        int[] data = new int[4];
 
         block[0] = pIn[0];
         block[1] = pIn[1];
         block[2] = pIn[2];
         block[3] = pIn[3];
 
-        round(temp, block, 0, 1, 2, 3, rKeys, 30);
-        round(temp, block, 2, 3, 0, 1, rKeys, 28);
-        round(temp, block, 0, 1, 2, 3, rKeys, 26);
-        round(temp, block, 2, 3, 0, 1, rKeys, 24);
-        round(temp, block, 0, 1, 2, 3, rKeys, 22);
-        round(temp, block, 2, 3, 0, 1, rKeys, 20);
-        round(temp, block, 0, 1, 2, 3, rKeys, 18);
-        round(temp, block, 2, 3, 0, 1, rKeys, 16);
-        round(temp, block, 0, 1, 2, 3, rKeys, 14);
-        round(temp, block, 2, 3, 0, 1, rKeys, 12);
-        round(temp, block, 0, 1, 2, 3, rKeys, 10);
-        round(temp, block, 2, 3, 0, 1, rKeys,  8);
-        round(temp, block, 0, 1, 2, 3, rKeys,  6);
-        round(temp, block, 2, 3, 0, 1, rKeys,  4);
-        round(temp, block, 0, 1, 2, 3, rKeys,  2);
-        round(temp, block, 2, 3, 0, 1, rKeys,  0);
+        round(temp, block, 0, 1, 2, 3, 30);
+        round(temp, block, 2, 3, 0, 1, 28);
+        round(temp, block, 0, 1, 2, 3, 26);
+        round(temp, block, 2, 3, 0, 1, 24);
+        round(temp, block, 0, 1, 2, 3, 22);
+        round(temp, block, 2, 3, 0, 1, 20);
+        round(temp, block, 0, 1, 2, 3, 18);
+        round(temp, block, 2, 3, 0, 1, 16);
+        round(temp, block, 0, 1, 2, 3, 14);
+        round(temp, block, 2, 3, 0, 1, 12);
+        round(temp, block, 0, 1, 2, 3, 10);
+        round(temp, block, 2, 3, 0, 1,  8);
+        round(temp, block, 0, 1, 2, 3,  6);
+        round(temp, block, 2, 3, 0, 1,  4);
+        round(temp, block, 0, 1, 2, 3,  2);
+        round(temp, block, 2, 3, 0, 1,  0);
 
-        pOut[0] = block[2];
-        pOut[1] = block[3];
-        pOut[2] = block[0];
-        pOut[3] = block[1];
+        data[0] = block[2];
+        data[1] = block[3];
+        data[2] = block[0];
+        data[3] = block[1];
+
+        return data;
     }
 }

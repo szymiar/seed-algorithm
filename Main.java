@@ -25,19 +25,18 @@ public class Main
         keyLen = asc2hex(key, "00000000000000000000000000000000");
 
 
-        System.out.println(pIn[0]);
         seed.init(key);
         pOut = seed.encrypt(pIn);
 
+        for (int i = 0; i < 4; i++){
+            System.out.println(pIn[i] + " : " + pOut[i]);
+        }
 
-        System.out.print(pOut[0]);
-        System.out.println("");
+        int[] decoded = seed.decrypt(pOut);
 
-        System.out.print(pOut[3]);
-        System.out.println("");
-        System.out.print(pOut[2]);
-        System.out.println("");
-        System.out.print(pOut[1]);
+        for (int i = 0; i < 4; i++){
+            System.out.println(pOut[i] + " : " + decoded[i]);
+        }
 
 
 
