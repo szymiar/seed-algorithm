@@ -3,8 +3,7 @@ public class Main
     public static void main(String[] args)
     {
         byte[] key = new byte[160];
-        byte[] in = new byte[200];
-        byte[] mac = new byte[160];
+        
 
 
         SEED seed = new SEED();
@@ -12,7 +11,7 @@ public class Main
         int[] pOut = new int[4];
         int[] pIn = new int[4];
 
-        int keyLen = 0, inLen = 0, macLen = 16;
+        
 
         pIn[0] = 0x00010203;
         pIn[1] = 0x04050607;
@@ -21,8 +20,7 @@ public class Main
 
 
 
-        System.out.println("looool");
-        keyLen = asc2hex(key, "00000000000000000000000000000000");
+        keyAsHex(key, "00000000000000000000000000000000");
 
 
         seed.init(key);
@@ -42,12 +40,12 @@ public class Main
 
     }
 
-    private static int asc2hex(byte[] dst, String src)
+    private static void keyAsHex(byte[] dst, String src)
     {
-        byte temp = 0x00, hex = 0;
-        int i = 0;
+        byte temp;
+        byte hex = 0;
 
-        for (i = 0; i < src.length(); i++)
+        for (int i = 0; i < src.length(); i++)
         {
             temp = 0x00;
             hex = (byte)src.charAt(i);
@@ -65,48 +63,6 @@ public class Main
                 dst[i >> 1] ^= temp & 0x0F;
             else
                 dst[i >> 1] = (byte)(temp << 4);
-        }
-
-        return ((i + 1) / 2);
-    }
-
-    private static void print_hex(String valName, byte[] data, int dataLen)
-    {
-        int i = 0;
-
-        System.out.printf("%s [%dbyte] :", valName, dataLen);
-        for (i = 0; i < dataLen; i++)
-        {
-            if ((i & 0x0F) == 0)
-                System.out.println("");
-
-            System.out.printf(" %02X", data[i]);
-        }
-        System.out.println("");
-    }
-
-    private static void print_title(String title)
-    {
-        System.out.println("================================================");
-        System.out.println("  " + title);
-        System.out.println("================================================");
-    }
-
-    private static void print_result(String func, int ret)
-    {
-        if (ret == 1)
-        {
-            System.out.println("================================================");
-            System.out.println("  " + func + " Failure!");
-            System.out.println("================================================");
-
-            System.exit(0);
-        }
-        else
-        {
-            System.out.println("================================================");
-            System.out.println("  " + func + " Success!");
-            System.out.println("================================================");
         }
     }
 }
