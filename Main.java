@@ -13,23 +13,26 @@ public class Main
         int[] CipherText = new int[4];
         int[] PlainText = new int[4];
 
-
+        /*
+        String keyS = "00000000000000000000000000000000";
 
         PlainText[0] = 0x00010203;
         PlainText[1] = 0x04050607;
-        PlainText[2]= 0x08090a0b;
+        PlainText[2] = 0x08090a0b;
         PlainText[3] = 0x0c0d0e0f;
+         */
+
+        String keyS = "00102030405060708090a0b0c0d0e0f";
+
+        PlainText[0] = 0x0;
+        PlainText[1] = 0x0;
+        PlainText[2] = 0x0;
+        PlainText[3] = 0x0;
 
 
-        int[]PlainText2 = new int[4];
-        PlainText2[0] = 0x83a2f8a2;
-        PlainText2[1] = 0x88641fb9;
-        PlainText2[2] = 0xa4e9a5cc;
-        PlainText2[3] = 0x2f131c7d;
-        String key2 = "4706480851e61be85d74bfb3fd956185";
 
 
-        keyAsHex(key, "00000000000000000000000000000000");
+        keyAsHex(key, keyS);
         seed.init(key);
         CipherText = seed.encrypt(PlainText);
 
@@ -42,26 +45,6 @@ public class Main
         for (int i = 0; i < 4; i++){
             System.out.println(Integer.toString(CipherText[i],16) + " : " + Integer.toString(decoded[i],16));
         }
-
-        System.out.println("");
-        System.out.println("");
-        System.out.println("");
-        keyAsHex(key, key2);
-        seed.init(key);
-        CipherText = seed.encrypt(PlainText2);
-
-        for (int i = 0; i < 4; i++){
-            System.out.println(Long.toString(getUnsignedInt(PlainText2[i]),16) + " : " + Long.toString(getUnsignedInt(CipherText[i]),16));
-        }
-
-        int[] decoded2 = seed.decrypt(CipherText);
-
-        System.out.println("");
-        for (int i = 0; i < 4; i++){
-            System.out.println(Long.toString(getUnsignedInt(CipherText[i]),16) + " : " + Long.toString(getUnsignedInt(decoded2[i]),16));
-        }
-
-
     }
 
    /* private static void convertByte(byte[] value, String key){

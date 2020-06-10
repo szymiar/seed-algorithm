@@ -1,6 +1,7 @@
 
 
 public class SEED{
+
     /**
      * Tablica int[] stalych do generowania podkluczy.
      */
@@ -251,8 +252,8 @@ public class SEED{
         rKeys[keysOffset] = SS0[get0Byte(temp[0])&0x0ff] ^ SS1[get1Byte(temp[0])&0x0ff] ^ SS2[get2Byte(temp[0])&0x0ff] ^ SS3[get3Byte(temp[0])&0x0ff];
         rKeys[keysOffset+1] = SS0[get0Byte(temp[1])&0x0ff] ^ SS1[get1Byte(temp[1])&0x0ff] ^ SS2[get2Byte(temp[1])&0x0ff] ^ SS3[get3Byte(temp[1])&0x0ff];
 
-        if(keysOffset < 15) {
-            if (keysOffset % 2 == 0) {
+        if(keysOffset < 30) {
+            if (keysOffset / 2 % 2 == 0) {
                 temp[0] = blocks[0];
                 blocks[0] = ((blocks[0] >> 8) & 0x00ffffff) ^ (blocks[1] << 24);
                 blocks[1] = ((blocks[1] >> 8) & 0x00ffffff) ^ (temp[0] << 24);
@@ -284,6 +285,11 @@ public class SEED{
     }
 
 
+    /**
+     *
+     * @param data
+     * @return
+     */
     public int[] encrypt(int[] data) {
         int[] block = new int[4];
         int[] temp = new int[2];
