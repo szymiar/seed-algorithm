@@ -1,16 +1,5 @@
-import java.math.BigInteger;
-
-public class SEED{
-
-    /**
-     * Tablica int[] stalych do generowania podkluczy.
-     */
+public class SEED {
     private final int[] KC = {0x9e3779b9, 0x3c6ef373, 0x78dde6e6, 0xf1bbcdcc, 0xe3779b99, 0xc6ef3733, 0x8dde6e67, 0x1bbcdccf, 0x3779b99e, 0x6ef3733c, 0xdde6e678, 0xbbcdccf1, 0x779b99e3, 0xef3733c6, 0xde6e678d, 0xbcdccf1b};
-
-    /**
-     * Poszerzony S-box numer 0
-     */
-
 
     private final int SS0[] = {
             0x2989a1a8, 0x05858184, 0x16c6d2d4, 0x13c3d3d0, 0x14445054, 0x1d0d111c, 0x2c8ca0ac, 0x25052124,
@@ -47,9 +36,6 @@ public class SEED{
             0x28c8e0e8, 0x1b0b1318, 0x05050104, 0x39497178, 0x10809090, 0x2a4a6268, 0x2a0a2228, 0x1a8a9298
     };
 
-    /**
-     * Poszerzony S-box numer 1
-     */
     private final int SS1[] = {
             0x38380830, 0xe828c8e0, 0x2c2d0d21, 0xa42686a2, 0xcc0fcfc3, 0xdc1eced2, 0xb03383b3, 0xb83888b0,
             0xac2f8fa3, 0x60204060, 0x54154551, 0xc407c7c3, 0x44044440, 0x6c2f4f63, 0x682b4b63, 0x581b4b53,
@@ -85,9 +71,6 @@ public class SEED{
             0xd819c9d1, 0x4c0c4c40, 0x80038383, 0x8c0f8f83, 0xcc0ecec2, 0x383b0b33, 0x480a4a42, 0xb43787b3
     };
 
-    /**
-     * Poszerzony S-box numer 2
-     */
     private final int SS2[] = {
             0xa1a82989, 0x81840585, 0xd2d416c6, 0xd3d013c3, 0x50541444, 0x111c1d0d, 0xa0ac2c8c, 0x21242505,
             0x515c1d4d, 0x43400343, 0x10181808, 0x121c1e0e, 0x51501141, 0xf0fc3ccc, 0xc2c80aca, 0x63602343,
@@ -123,9 +106,6 @@ public class SEED{
             0xe0e828c8, 0x13181b0b, 0x01040505, 0x71783949, 0x90901080, 0x62682a4a, 0x22282a0a, 0x92981a8a
     };
 
-    /**
-     * Poszerzony S-box numer 3
-     */
     private final int SS3[] = {
             0x08303838, 0xc8e0e828, 0x0d212c2d, 0x86a2a426, 0xcfc3cc0f, 0xced2dc1e, 0x83b3b033, 0x88b0b838,
             0x8fa3ac2f, 0x40606020, 0x45515415, 0xc7c3c407, 0x44404404, 0x4f636c2f, 0x4b63682b, 0x4b53581b,
@@ -161,13 +141,17 @@ public class SEED{
             0xc9d1d819, 0x4c404c0c, 0x83838003, 0x8f838c0f, 0xcec2cc0e, 0x0b33383b, 0x4a42480a, 0x87b3b437
     };
 
-    /**
-     * Tablica typu int[] przechowująca wygenerowane podklucze.
-     */
+    private int ENDIAN = 0;
+    private final int BLOCK_SIZE = 16;
+    private final int BLOCK_SIZE_INT = 4;
+    private final int[] NORMAL_ORDER = {0, 1, 2, 3};
+    private final int[] MIXED_ORDER = {2, 3, 0, 1};
     private int[] rKeys = new int[32];
+
 
     /**
      * Metoda pobierająca najmłodszy bajt podanej liczby.
+     *
      * @param num int, liczba
      * @return byte
      */
@@ -177,6 +161,7 @@ public class SEED{
 
     /**
      * Metoda pobierająca 2 najmłodszy bajt podanej liczby.
+     *
      * @param num int, liczba
      * @return byte
      */
@@ -186,6 +171,7 @@ public class SEED{
 
     /**
      * Metoda pobierająca 3 najmłodszy bajt podanej liczby.
+     *
      * @param num int, liczba
      * @return byte
      */
@@ -196,6 +182,7 @@ public class SEED{
 
     /**
      * Metoda pobierająca 4 najmłodszy bajt podanej liczby.
+     *
      * @param num int, liczba
      * @return byte
      */
@@ -203,26 +190,108 @@ public class SEED{
         return (byte) ((num >> 24) & 0x0FF);
     }
 
+    public int byteToInt(byte[] b, int offset, int endian) {
+        if (endian == 0) {
+            return ((0x0ff & b[offset]) << 24) | ((0x0ff & b[offset + 1]) << 16) | ((0x0ff & b[offset + 2]) << 8) | ((0x0ff & b[offset + 3]));
+        } else {
+            return ((0x0ff & b[offset])) | ((0x0ff & b[offset + 1]) << 8) | ((0x0ff & b[offset + 2]) << 16) | ((0x0ff & b[offset + 3]) << 24);
+        }
+    }
+
+    private final int changeEndian(int num) {
+        return ((((num << 8) | ((num >> 24) & 0x000000ff)) & 0x00ff00ff) | (((num << 24) | ((num >> 8) & 0x00ffffff)) & 0xff00ff00));
+    }
+
+    public int[] charToInt(byte[] b, int length) {
+        int dataLength = length / 4;
+        if (length % 4 > 0) dataLength++;
+        int[] data = new int[dataLength];
+
+        for (int i = 0; i < dataLength; i++) data[i] = byteToInt(b, i * 4, ENDIAN);
+
+        return data;
+    }
+
+
+    public byte[] intToChar(int num[], int length) {
+        byte[] data;
+        int i;
+
+        data = new byte[length];
+        if (ENDIAN != 0) {
+            for (i = 0; i < length; i++) data[i] = (byte) (num[i / 4] >> ((i % 4) * 8));
+        } else {
+            for (i = 0; i < length; i++) data[i] = (byte) (num[i / 4] >> ((3 - (i % 4)) * 8));
+        }
+
+        return data;
+    }
+
+    public void copyTab(byte[] destination, byte[] source, int length) {
+        for (int i = 0; i < length; i++) {
+            destination[i] = source[i];
+        }
+    }
+
+    public void copyShieftedTab(int[] destination, int[] source, int offset, int length) {
+        int count = length / 4;
+        if (length % 4 != 0) count++;
+        for (int i = 0; i < count; i++) {
+            destination[i] = source[offset + i];
+        }
+    }
+
+    public void setByteValueOfInt(int[] num, int offset, byte value, int ENDIAN) {
+        if (ENDIAN == 0) {
+            int shift_value = (3 - offset % 4) * 8;
+            int mask_value = 0x0ff << shift_value;
+            int mask_value2 = ~mask_value;
+            int value2 = (value & 0x0ff) << shift_value;
+            num[offset / 4] = (num[offset / 4] & mask_value2) | (value2 & mask_value);
+        } else {
+            int shift_value = (offset % 4) * 8;
+            int mask_value = 0x0ff << shift_value;
+            int mask_value2 = ~mask_value;
+            int value2 = (value & 0x0ff) << shift_value;
+            num[offset / 4] = (num[offset / 4] & mask_value2) | (value2 & mask_value);
+        }
+    }
+
+    public byte getByteValueOfInt(int[] num, int offset, int ENDIAN) {
+        if (ENDIAN == 0) {
+            int shift_value = (3 - offset % 4) * 8;
+            int mask_value = 0x0ff << shift_value;
+            int value = (num[offset / 4] & mask_value) >> shift_value;
+            return (byte) value;
+        } else {
+            int shift_value = (offset % 4) * 8;
+            int mask_value = 0x0ff << shift_value;
+            int value = (num[offset / 4] & mask_value) >> shift_value;
+            return (byte) value;
+        }
+
+    }
+
     /**
      * Metoda wykonująca funkcję F.
-     * @param temp int[], pomocnicza tablica
+     *
+     * @param temp   int[], pomocnicza tablica
      * @param blocks int[], szyfrowane bloki
      * @param params int[], tablica określająca kolejność wykorzystania bloków
-     * @param offset int, przesunięcie
      */
-    private void round(int[] temp, int[] blocks, int[] params, int offset) {
-        temp[0] = blocks[params[2]] ^ rKeys[offset+0];
-        temp[1] = blocks[params[3]] ^ rKeys[offset+1];
+    private void round(int[] temp, int[] blocks, int[] params, int subkeysNumber) {
+        temp[0] = blocks[params[2]] ^ rKeys[2 * subkeysNumber];
+        temp[1] = blocks[params[3]] ^ rKeys[2 * subkeysNumber + 1];
 
         temp[1] ^= temp[0];
-        temp[1] = SS0[get0Byte(temp[1])&0x0ff] ^ SS1[get1Byte(temp[1])&0x0ff] ^
-                SS2[get2Byte(temp[1])&0x0ff] ^ SS3[get3Byte(temp[1])&0x0ff];
+        temp[1] = SS0[get0Byte(temp[1]) & 0x0ff] ^ SS1[get1Byte(temp[1]) & 0x0ff] ^
+                SS2[get2Byte(temp[1]) & 0x0ff] ^ SS3[get3Byte(temp[1]) & 0x0ff];
         temp[0] += temp[1];
-        temp[0] = SS0[get0Byte(temp[0])&0x0ff] ^ SS1[get1Byte(temp[0])&0x0ff] ^
-                SS2[get2Byte(temp[0])&0x0ff] ^ SS3[get3Byte(temp[0])&0x0ff];
+        temp[0] = SS0[get0Byte(temp[0]) & 0x0ff] ^ SS1[get1Byte(temp[0]) & 0x0ff] ^
+                SS2[get2Byte(temp[0]) & 0x0ff] ^ SS3[get3Byte(temp[0]) & 0x0ff];
         temp[1] += temp[0];
-        temp[1] = SS0[get0Byte(temp[1])&0x0ff] ^ SS1[get1Byte(temp[1])&0x0ff] ^
-                SS2[get2Byte(temp[1])&0x0ff] ^ SS3[get3Byte(temp[1])&0x0ff];
+        temp[1] = SS0[get0Byte(temp[1]) & 0x0ff] ^ SS1[get1Byte(temp[1]) & 0x0ff] ^
+                SS2[get2Byte(temp[1]) & 0x0ff] ^ SS3[get3Byte(temp[1]) & 0x0ff];
         temp[0] += temp[1];
 
         blocks[params[0]] ^= temp[0];
@@ -230,32 +299,21 @@ public class SEED{
     }
 
     /**
-     * Metoda generująca wartość int na podstawie bajta
-     * @param b byte
-     * @param offset int, przesunięcie
-     * @return int
-     */
-    private int byteToInt(byte[] b, int offset) {
-        return ((b[offset] & 0x0FF) << 24) | ((b[offset + 1] & 0x0FF) << 16)
-                | ((b[offset + 2] & 0x0FF) << 8) | ((b[offset + 3] & 0x0FF));
-    }
-
-    /**
      * Metoda generująca parę podkluczy
-     * @param temp int[], tablica pomocnicza
-     * @param keysOffset int, przesunięcie
-     * @param blocks int[], szyfrowane bloki
-     * @param num int, numer wykorzystywanej wykorzystywanej stałej w tablicy KC
+     *
+     * @param temp          int[], tablica pomocnicza
+     * @param subkeysNumber int, przesunięcie
+     * @param blocks        int[], szyfrowane bloki
      */
-    private void generateSubkeys(int[] temp, int keysOffset, int[] blocks, int num) {
-        temp[0] = blocks[0] + blocks[2] - KC[num];
-        temp[1] = blocks[1] - blocks[3] + KC[num];
+    private void generateSubkeys(int[] temp, int[] blocks, int subkeysNumber) {
+        temp[0] = blocks[0] + blocks[2] - KC[subkeysNumber];
+        temp[1] = blocks[1] - blocks[3] + KC[subkeysNumber];
 
-        rKeys[keysOffset] = SS0[get0Byte(temp[0])&0x0ff] ^ SS1[get1Byte(temp[0])&0x0ff] ^ SS2[get2Byte(temp[0])&0x0ff] ^ SS3[get3Byte(temp[0])&0x0ff];
-        rKeys[keysOffset+1] = SS0[get0Byte(temp[1])&0x0ff] ^ SS1[get1Byte(temp[1])&0x0ff] ^ SS2[get2Byte(temp[1])&0x0ff] ^ SS3[get3Byte(temp[1])&0x0ff];
+        rKeys[2 * subkeysNumber] = SS0[get0Byte(temp[0]) & 0x0ff] ^ SS1[get1Byte(temp[0]) & 0x0ff] ^ SS2[get2Byte(temp[0]) & 0x0ff] ^ SS3[get3Byte(temp[0]) & 0x0ff];
+        rKeys[2 * subkeysNumber + 1] = SS0[get0Byte(temp[1]) & 0x0ff] ^ SS1[get1Byte(temp[1]) & 0x0ff] ^ SS2[get2Byte(temp[1]) & 0x0ff] ^ SS3[get3Byte(temp[1]) & 0x0ff];
 
-        if(keysOffset < 30) {
-            if (keysOffset / 2 % 2 == 0) {
+        if (subkeysNumber < 15) {
+            if (subkeysNumber % 2 == 0) {
                 temp[0] = blocks[0];
                 blocks[0] = ((blocks[0] >> 8) & 0x00ffffff) ^ (blocks[1] << 24);
                 blocks[1] = ((blocks[1] >> 8) & 0x00ffffff) ^ (temp[0] << 24);
@@ -267,72 +325,198 @@ public class SEED{
         }
     }
 
-    /**
-     * Metoda inicjalizujaca.
-     * Powinna byc wywolywana przy kazdorazowej zmianie klucza glownego.
-     * Metoda generuje tablice podkluczy rKeys, uzywanych w trakcie szyfrowania i deszyfrowania.
-     * @param mKey klucz glowny typu byte[] składający się z 16 segmentów po 8 bajtow
-     */
     public void init(byte[] mKey) {
-        int[] blocks = new int[4];
-        int[] temp = new int[2];
+        int blocks[] = new int[4];
+        int temp[] = new int[2];
 
-        for(int i = 0; i < 4; i++) {
-            blocks[i] = byteToInt(mKey, 4 * i);
+        for (int i = 0; i < 4; i++) blocks[i] = byteToInt(mKey, i * 4, ENDIAN);
+
+        if (ENDIAN != 0) {
+            for (int i = 0; i < 4; i++) blocks[i] = changeEndian(blocks[i]);
         }
 
-        for(int i = 0; i < 16; i++) {
-            generateSubkeys(temp, i * 2, blocks, i);
+        for (int i = 0; i < 16; i++) {
+            generateSubkeys(temp, blocks, i);
         }
     }
 
+    private void encryptBlock(int[] in, int inOffset, int[] out, int outOffset) {
+        int blocks[] = new int[4];
+        int temp[] = new int[2];
 
-    /**
-     *
-     * @param data
-     * @return
-     */
-    public int[] encrypt(int[] data) {
-        int[] block = new int[4];
-        int[] temp = new int[2];
-        int[] params;
-        int[] cipher = new int[4];
+        for (int i = 0; i < 4; i++) blocks[i] = in[inOffset + i];
 
-        for(int i = 0; i < 4; i++) block[i] = data[i];
-
-        for(int i = 0; i < 16; i++) {
-            if(i % 2 == 0) params = new int[]{0, 1, 2, 3};
-            else params = new int[]{2, 3, 0, 1};
-            round(temp, block, params, i * 2);
+        if (ENDIAN != 0) {
+            for (int i = 0; i < 4; i++) blocks[i] = changeEndian(blocks[i]);
         }
 
-        cipher[0] = block[2];
-        cipher[1] = block[3];
-        cipher[2] = block[0];
-        cipher[3] = block[1];
+        for (int i = 0; i < 16; i += 2) {
+            round(temp, blocks, NORMAL_ORDER, i);
+            round(temp, blocks, MIXED_ORDER, i + 1);
+        }
+
+        if (ENDIAN != 0) {
+            for (int i = 0; i < 4; i++) blocks[i] = changeEndian(blocks[i]);
+        }
+
+        out[outOffset] = blocks[2];
+        out[outOffset + 1] = blocks[3];
+        out[outOffset + 2] = blocks[0];
+        out[outOffset + 3] = blocks[1];
+    }
+
+    public void decryptBlock(int[] in, int in_offset, int[] out, int out_offset) {
+        int blocks[] = new int[4];
+        int temp[] = new int[2];
+
+        for (int i = 0; i < 4; i++) blocks[i] = in[in_offset + i];
+
+        if (ENDIAN != 0) {
+            for (int i = 0; i < 4; i++) blocks[i] = changeEndian(blocks[i]);
+        }
+
+        for (int i = 15; i >= 0; i -= 2) {
+            round(temp, blocks, NORMAL_ORDER, i);
+            round(temp, blocks, MIXED_ORDER, i - 1);
+        }
+
+        if (ENDIAN != 0) {
+            for (int i = 0; i < 4; i++) blocks[i] = changeEndian(blocks[i]);
+        }
+
+        out[out_offset + 0] = blocks[2];
+        out[out_offset + 1] = blocks[3];
+        out[out_offset + 2] = blocks[0];
+        out[out_offset + 3] = blocks[1];
+    }
+
+    public byte[] encrypt(byte[] mKey, byte[] plainText, int length) {
+        int count = BLOCK_SIZE;
+        int offset = 0;
+        int encryptedDataLength;
+        int padding = (BLOCK_SIZE - length % BLOCK_SIZE);
+        byte[] cipher = new byte[length + padding];
+
+        byte[] paddedText = new byte[length + padding];
+        copyTab(paddedText, plainText, length);
+
+        init(mKey);
+
+        int tempLength = ((paddedText.length / BLOCK_SIZE)) * BLOCK_SIZE_INT;
+        int[] temp = new int[tempLength];
+        int[] data = charToInt(paddedText, length);
+
+        while (count <= length) {
+            encryptBlock(data, offset, temp, offset);
+            count += BLOCK_SIZE;
+            offset += BLOCK_SIZE_INT;
+        }
+
+        encryptedDataLength = count - BLOCK_SIZE;
+
+        int[] buffer = new int[4];
+        for (int i = 0; i < BLOCK_SIZE; i++) {
+            setByteValueOfInt(buffer, i, (byte) BLOCK_SIZE, ENDIAN);
+        }
+        encryptBlock(buffer, 0, temp, encryptedDataLength / 4);
+
+        byte[] encryptedData = intToChar(temp, encryptedDataLength + BLOCK_SIZE);
+        copyTab(cipher, encryptedData, encryptedDataLength + BLOCK_SIZE);
 
         return cipher;
     }
 
-    public int[] decrypt(int[] cipher) {
-        int[] block = new int[4];
-        int[] temp = new int[2];
-        int[] params;
-        int[] data = new int[4];
+    public byte[] decrypt(byte[] mKey, byte[] cipherText, int length) {
+        int count = BLOCK_SIZE;
+        int offset = 0;
 
-        for(int i = 0; i < 4; i++) block[i] = cipher[i];
+        byte[] plainText;
+        int paddingLength = 0;
 
-        for(int i = 15; i >= 0; i--) {
-            if(i % 2 == 1) params = new int[]{0, 1, 2, 3};
-            else params = new int[]{2, 3, 0, 1};
-            round(temp, block, params, i * 2);
+        if (length % BLOCK_SIZE > 0) {
+            byte[] result = null;
+            return result;
         }
 
-        data[0] = block[2];
-        data[1] = block[3];
-        data[2] = block[0];
-        data[3] = block[1];
+        init(mKey);
+        int[] data = charToInt(cipherText, length);
 
-        return data;
+        int dataLength = (length / 16) * 4;
+        int[] temp = new int[dataLength];
+
+        while (count <= length) {
+            decryptBlock(data, offset, temp, offset);
+            count += BLOCK_SIZE;
+            offset += BLOCK_SIZE_INT;
+        }
+
+        dataLength = count - BLOCK_SIZE;
+
+        int[] buffer = new int[4];
+        copyShieftedTab(buffer, temp, offset - 4, BLOCK_SIZE);
+
+        int bufferLength = getByteValueOfInt(buffer, BLOCK_SIZE - 1, ENDIAN);
+        if (bufferLength > 0 && bufferLength <= BLOCK_SIZE) {
+            for (int i = bufferLength; i > 0; i--) {
+                setByteValueOfInt(temp, dataLength - i, (byte) 0x00, ENDIAN);
+            }
+            paddingLength = bufferLength;
+        }
+
+        plainText = intToChar(temp, dataLength - paddingLength);
+
+        byte[] pbszPlainText = new byte[length];
+        copyTab(pbszPlainText, plainText, dataLength - paddingLength);
+        int message_length = dataLength - paddingLength;
+
+        if (message_length < 0) {
+            message_length = 0;
+        }
+        byte[] result = new byte[message_length];
+        System.arraycopy(pbszPlainText, 0, result, 0, message_length);
+
+        return result;
+    }
+
+    public static void main(String[] args) {
+        SEED s = new SEED();
+
+        byte key1[] = {(byte) 0x47, (byte) 0x06, (byte) 0x48, (byte) 0x08, (byte) 0x51, (byte) 0xE6, (byte) 0x1B, (byte) 0xE8, (byte) 0x5D, (byte) 0x74, (byte) 0xBF, (byte) 0xB3, (byte) 0xFD, (byte) 0x95, (byte) 0x61, (byte) 0x85};
+        byte key2[] = {(byte) 0x28, (byte) 0xDB, (byte) 0xC3, (byte) 0xBC, (byte) 0x49, (byte) 0xFF, (byte) 0xD8, (byte) 0x7D, (byte) 0xCF, (byte) 0xA5, (byte) 0x09, (byte) 0xB1, (byte) 0x1D, (byte) 0x42, (byte) 0x2B, (byte) 0xE7};
+
+
+        byte pbData[] = {(byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00};
+
+        byte pbData1[] = {(byte) 0x83, (byte) 0xA2, (byte) 0xF8, (byte) 0xA2, (byte) 0x88, (byte) 0x64, (byte) 0x1F, (byte) 0xB9, (byte) 0xA4, (byte) 0xE9, (byte) 0xA5, (byte) 0xCC, (byte) 0x2F, (byte) 0x13, (byte) 0x1C, (byte) 0x7D};
+        byte pbData2[] = {(byte) 0xB4, (byte) 0x1E, (byte) 0x6B, (byte) 0xE2, (byte) 0xEB, (byte) 0xA8, (byte) 0x4A, (byte) 0x14, (byte) 0x8E, (byte) 0x2E, (byte) 0xED, (byte) 0x84, (byte) 0x59, (byte) 0x3C, (byte) 0x5E, (byte) 0xC7};
+
+
+        byte pbCipher[];
+        byte pbPlain[];
+
+
+
+        byte[] key = key1;
+        byte[] data = pbData1;
+
+        System.out.print("Key:\t\t\t\t\t");
+        for (int i = 0; i < 16; i++) System.out.print(Integer.toHexString(0xff & key[i]) + " ");
+        System.out.print("\n");
+        System.out.print("Plaintext:\t\t\t\t");
+        for (int i = 0; i < 16; i++) System.out.print(Integer.toHexString(0xff & data[i]) + " ");
+        System.out.print("\n\n");
+
+        pbCipher = s.encrypt(key, data, 16);
+
+        pbPlain = s.decrypt(key, pbCipher, 32);
+
+        System.out.print("Ciphertext:\t\t\t\t");
+        for (int i = 0; i < 32; i++) System.out.print(Integer.toHexString(0xff & pbCipher[i]) + " ");
+        System.out.print("\n");
+
+        System.out.print("Plaintext(decrypted):\t");
+        for (int i = 0; i < 16; i++) System.out.print(Integer.toHexString(0xff & pbPlain[i]) + " ");
+        System.out.print("\n\n\n");
+
     }
 }
