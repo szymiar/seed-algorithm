@@ -1,7 +1,6 @@
 import java.math.BigInteger;
 
-public class SEED{
-
+public class SEED2{
     /**
      * Tablica int[] stalych do generowania podkluczy.
      */
@@ -164,15 +163,18 @@ public class SEED{
     /**
      * Tablica typu int[] przechowująca wygenerowane podklucze.
      */
-    private int[] rKeys = new int[32];
+    private BigInteger[] rKeys = new BigInteger[32];
 
     /**
      * Metoda pobierająca najmłodszy bajt podanej liczby.
      * @param num int, liczba
      * @return byte
      */
-    private byte get0Byte(int num) {
-        return (byte) (num & 0x0FF);
+    private byte get0Byte(BigInteger num) {
+        BigInteger t = new BigInteger("0FF",16);
+        int l = num.intValue();
+        num.and(t).intValue();
+        return (byte) num.and(t).intValue();
     }
 
     /**
@@ -180,8 +182,11 @@ public class SEED{
      * @param num int, liczba
      * @return byte
      */
-    private byte get1Byte(int num) {
-        return (byte) ((num >> 8) & 0x0FF);
+    private byte get1Byte(BigInteger num) {
+        BigInteger t = new BigInteger("0FF",16);
+        int l = num.intValue();
+        return  (byte) num.shiftRight(8).and(t).intValue();
+
     }
 
     /**
@@ -189,8 +194,10 @@ public class SEED{
      * @param num int, liczba
      * @return byte
      */
-    private byte get2Byte(int num) {
-        return (byte) ((num >> 16) & 0x0FF);
+    private byte get2Byte(BigInteger num) {
+        BigInteger t = new BigInteger("0FF",16);
+        int l = num.intValue();
+        return  (byte) num.shiftRight(16).and(t).intValue();
     }
 
 
@@ -199,8 +206,10 @@ public class SEED{
      * @param num int, liczba
      * @return byte
      */
-    private byte get3Byte(int num) {
-        return (byte) ((num >> 24) & 0x0FF);
+    private byte get3Byte(BigInteger num) {
+        BigInteger t = new BigInteger("0FF",16);
+        int l = num.intValue();
+        return  (byte) num.shiftRight(16).and(t).intValue();
     }
 
     /**
@@ -210,23 +219,23 @@ public class SEED{
      * @param params int[], tablica określająca kolejność wykorzystania bloków
      * @param offset int, przesunięcie
      */
-    private void round(int[] temp, int[] blocks, int[] params, int offset) {
-        temp[0] = blocks[params[2]] ^ rKeys[offset+0];
-        temp[1] = blocks[params[3]] ^ rKeys[offset+1];
+    private void round(BigInteger[] temp, BigInteger[] blocks, int[] params, int offset) {
+        temp[0] = blocks[params[2]].xor(rKeys[offset+0]);
+        temp[1] = blocks[params[3]].xor(rKeys[offset+1]);
 
-        temp[1] ^= temp[0];
-        temp[1] = SS0[get0Byte(temp[1])&0x0ff] ^ SS1[get1Byte(temp[1])&0x0ff] ^
-                SS2[get2Byte(temp[1])&0x0ff] ^ SS3[get3Byte(temp[1])&0x0ff];
-        temp[0] += temp[1];
-        temp[0] = SS0[get0Byte(temp[0])&0x0ff] ^ SS1[get1Byte(temp[0])&0x0ff] ^
-                SS2[get2Byte(temp[0])&0x0ff] ^ SS3[get3Byte(temp[0])&0x0ff];
-        temp[1] += temp[0];
-        temp[1] = SS0[get0Byte(temp[1])&0x0ff] ^ SS1[get1Byte(temp[1])&0x0ff] ^
-                SS2[get2Byte(temp[1])&0x0ff] ^ SS3[get3Byte(temp[1])&0x0ff];
-        temp[0] += temp[1];
+        temp[1] = temp[1].xor(temp[0]);
+        temp[1] = new BigInteger(Integer.toHexString(SS0[get0Byte(temp[1])&0x0ff] ^ SS1[get1Byte(temp[1])&0x0ff] ^
+                SS2[get2Byte(temp[1])&0x0ff] ^ SS3[get3Byte(temp[1])&0x0ff]),16);
+        temp[0] = temp[0].add(temp[1]);
+        temp[0] = new BigInteger(Integer.toHexString(SS0[get0Byte(temp[0])&0x0ff] ^ SS1[get1Byte(temp[0])&0x0ff] ^
+                SS2[get2Byte(temp[0])&0x0ff] ^ SS3[get3Byte(temp[0])&0x0ff]),16);
+        temp[1] = temp[1].add(temp[0]);
+        temp[1] = new BigInteger(Integer.toHexString(SS0[get0Byte(temp[1])&0x0ff] ^ SS1[get1Byte(temp[1])&0x0ff] ^
+                SS2[get2Byte(temp[1])&0x0ff] ^ SS3[get3Byte(temp[1])&0x0ff]),16);
+        temp[0] = temp[0].add(temp[1]);
 
-        blocks[params[0]] ^= temp[0];
-        blocks[params[1]] ^= temp[1];
+        blocks[params[0]] =  blocks[params[0]].xor(temp[0]);
+        blocks[params[1]] = blocks[params[1]].xor(temp[1]);
     }
 
     /**
@@ -235,9 +244,10 @@ public class SEED{
      * @param offset int, przesunięcie
      * @return int
      */
-    private int byteToInt(byte[] b, int offset) {
-        return ((b[offset] & 0x0FF) << 24) | ((b[offset + 1] & 0x0FF) << 16)
-                | ((b[offset + 2] & 0x0FF) << 8) | ((b[offset + 3] & 0x0FF));
+    private BigInteger byteToInt(byte[] b, int offset) {
+        BigInteger t = new BigInteger(Integer.toHexString(((b[offset] & 0x0FF) << 24) | ((b[offset + 1] & 0x0FF) << 16)
+                | ((b[offset + 2] & 0x0FF) << 8) | ((b[offset + 3] & 0x0FF))),16);
+        return t;
     }
 
     /**
@@ -247,22 +257,26 @@ public class SEED{
      * @param blocks int[], szyfrowane bloki
      * @param num int, numer wykorzystywanej wykorzystywanej stałej w tablicy KC
      */
-    private void generateSubkeys(int[] temp, int keysOffset, int[] blocks, int num) {
-        temp[0] = blocks[0] + blocks[2] - KC[num];
-        temp[1] = blocks[1] - blocks[3] + KC[num];
+    private void generateSubkeys(BigInteger[] temp, int keysOffset, BigInteger[] blocks, int num) {
+        temp[0] = blocks[0].add(blocks[2]).subtract(new BigInteger(Integer.toHexString(KC[num]),16));
+        temp[1] = blocks[1].subtract(blocks[3]).add(new BigInteger(Integer.toHexString(KC[num]),16));
 
-        rKeys[keysOffset] = SS0[get0Byte(temp[0])&0x0ff] ^ SS1[get1Byte(temp[0])&0x0ff] ^ SS2[get2Byte(temp[0])&0x0ff] ^ SS3[get3Byte(temp[0])&0x0ff];
-        rKeys[keysOffset+1] = SS0[get0Byte(temp[1])&0x0ff] ^ SS1[get1Byte(temp[1])&0x0ff] ^ SS2[get2Byte(temp[1])&0x0ff] ^ SS3[get3Byte(temp[1])&0x0ff];
+        rKeys[keysOffset] = new BigInteger(Integer.toHexString(SS0[get0Byte(temp[0])&0x0ff] ^ SS1[get1Byte(temp[0])&0x0ff] ^ SS2[get2Byte(temp[0])&0x0ff] ^ SS3[get3Byte(temp[0])&0x0ff]),16);
+        rKeys[keysOffset+1] = new BigInteger(Integer.toHexString(SS0[get0Byte(temp[1])&0x0ff] ^ SS1[get1Byte(temp[1])&0x0ff] ^ SS2[get2Byte(temp[1])&0x0ff] ^ SS3[get3Byte(temp[1])&0x0ff]),16);
 
-        if(keysOffset < 30) {
-            if (keysOffset / 2 % 2 == 0) {
+        BigInteger t1 = new BigInteger("00ffffff",16);
+        BigInteger t2 = new BigInteger("000000ff",16);
+
+
+        if(keysOffset < 15) {
+            if (keysOffset % 2 == 0) {
                 temp[0] = blocks[0];
-                blocks[0] = ((blocks[0] >> 8) & 0x00ffffff) ^ (blocks[1] << 24);
-                blocks[1] = ((blocks[1] >> 8) & 0x00ffffff) ^ (temp[0] << 24);
+                blocks[0] = (blocks[0].shiftRight(8).and(t1).xor(blocks[1].shiftLeft(24)));
+                blocks[1] = (blocks[1].shiftRight(8).and(t1).xor(blocks[0].shiftLeft(24)));
             } else {
                 temp[0] = blocks[2];
-                blocks[2] = (blocks[2] << 8) ^ ((blocks[3] >> 24) & 0x000000ff);
-                blocks[3] = (blocks[3] << 8) ^ ((temp[0] >> 24) & 0x000000ff);
+                blocks[2] =    (blocks[2].shiftLeft(8)).xor(blocks[3].shiftRight(24)).and(t2);
+                blocks[3] = (blocks[3].shiftLeft(8)).xor(temp[0].shiftRight(24)).and(t2);
             }
         }
     }
@@ -274,8 +288,8 @@ public class SEED{
      * @param mKey klucz glowny typu byte[] składający się z 16 segmentów po 8 bajtow
      */
     public void init(byte[] mKey) {
-        int[] blocks = new int[4];
-        int[] temp = new int[2];
+        BigInteger[] blocks = new BigInteger[4];
+        BigInteger[] temp = new BigInteger[2];
 
         for(int i = 0; i < 4; i++) {
             blocks[i] = byteToInt(mKey, 4 * i);
@@ -287,16 +301,11 @@ public class SEED{
     }
 
 
-    /**
-     *
-     * @param data
-     * @return
-     */
-    public int[] encrypt(int[] data) {
-        int[] block = new int[4];
-        int[] temp = new int[2];
+    public BigInteger[] encrypt(BigInteger[] data) {
+        BigInteger[] block = new BigInteger[4];
+        BigInteger[] temp = new BigInteger[2];
         int[] params;
-        int[] cipher = new int[4];
+        BigInteger[] cipher = new BigInteger[4];
 
         for(int i = 0; i < 4; i++) block[i] = data[i];
 
@@ -314,11 +323,11 @@ public class SEED{
         return cipher;
     }
 
-    public int[] decrypt(int[] cipher) {
-        int[] block = new int[4];
-        int[] temp = new int[2];
+    public BigInteger[] decrypt(BigInteger[] cipher) {
+        BigInteger[] block = new BigInteger[4];
+        BigInteger[] temp = new BigInteger[2];
         int[] params;
-        int[] data = new int[4];
+        BigInteger[] data = new BigInteger[4];
 
         for(int i = 0; i < 4; i++) block[i] = cipher[i];
 
